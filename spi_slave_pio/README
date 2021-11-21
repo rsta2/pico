@@ -1,0 +1,5 @@
+README
+
+This program provides a SPI slave, which is compatible with the SPI master(s) of
+the Raspberry Pi 0-4. It has been implemented using two PIO state machines of
+the RP2040.

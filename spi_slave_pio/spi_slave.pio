@@ -1,0 +1,134 @@
+;
+; spi_slave.pio
+;
+; SPI slave for the RP2040
+; Copyright (C) 2021  Rene Stange
+;
+; - with chip select (CS)
+; - supports CPOL=0 and CPHA=0 only
+; - data blocks must be a multiple of 32-bits long
+; - Input pins must be GPIOs in a row: RX, CS, SCK
+;
+; SPDX-License-Identifier: BSD-3-Clause
+;
+
+; Input pins
+.define PUBLIC PIN_OFFSET_RX	0
+.define PUBLIC PIN_OFFSET_CS	1
+.define PUBLIC PIN_OFFSET_SCK	2
+; Output pins
+.define PUBLIC PIN_OFFSET_TX	0
+
+.define LOW		0
+.define HIGH		1
+.define INPUT		LOW
+.define OUTPUT		HIGH
+
+; Set pin direction of TX pin according to CS pin
+.program spi_slave_cs
+
+loop:
+	jmp pin, high
+	set pindirs, OUTPUT
+	jmp loop
+high:
+	set pindirs, INPUT
+
+%c-sdk {
+
+// This must be called before spi_slave_txrx_program_init()!
+static inline uint spi_slave_cs_program_init (PIO pio, uint pin_cs, uint pin_tx)
+{
+	uint offset = pio_add_program (pio, &spi_slave_cs_program);
+	uint sm = pio_claim_unused_sm (pio, true);
+	pio_sm_config c = spi_slave_cs_program_get_default_config (offset);
+
+	pio_sm_set_consecutive_pindirs (pio, sm, pin_cs, 1, false);
+	pio_gpio_init (pio, pin_cs);
+	sm_config_set_jmp_pin (&c, pin_cs);
+
+	pio_sm_set_consecutive_pindirs (pio, sm, pin_tx, 1, false);	// init as INPUT
+	pio_gpio_init (pio, pin_tx);
+	sm_config_set_set_pins (&c, pin_tx, 1);
+
+	pio_sm_init (pio, sm, offset, &c);
+	pio_sm_set_enabled (pio, sm, true);
+
+	return sm;
+}
+
+%}
+
+; Handle TX and RX
+;
+; Polarity and phase are assumed to be both 0, i.e.:
+; - input data is captured on rising edge of SCLK.
+; - output data is propagated on falling edge of SCLK.
+.program spi_slave_txrx
+
+	wait LOW pin PIN_OFFSET_CS
+	out pins, 1
+	wait HIGH pin PIN_OFFSET_SCK
+	in pins, 1
+	wait LOW pin PIN_OFFSET_SCK
+
+%c-sdk {
+
+static inline uint spi_slave_txrx_program_init (PIO pio, uint pin_rx, uint pin_tx)
+{
+	uint offset = pio_add_program (pio, &spi_slave_txrx_program);
+	uint sm = pio_claim_unused_sm (pio, true);
+	pio_sm_config c = spi_slave_txrx_program_get_default_config (offset);
+
+	pio_sm_set_consecutive_pindirs (pio, sm, pin_rx, 3, false);
+	pio_gpio_init (pio, pin_rx);
+	pio_gpio_init (pio, pin_rx+PIN_OFFSET_SCK);
+	sm_config_set_in_pins (&c, pin_rx);
+
+	sm_config_set_out_pins (&c, pin_tx, 1);
+
+	sm_config_set_out_shift (&c, false, true, 32);	// enable Autopull, MSB first
+	sm_config_set_in_shift (&c, false, true, 32);	// enable Autopush, MSB first
+
+	pio_sm_init (pio, sm, offset, &c);
+	pio_sm_set_enabled (pio, sm, true);
+
+	return sm;
+}
+
+%}
+
+%c-sdk {
+
+// length must be a multiple of 4
+void __time_critical_func
+(spi_slave_write_read_blocking) (PIO pio, uint sm, const void *src,
+				 void *dst, size_t length)
+{
+	const uint32_t *src32 = (const uint32_t *) src;
+	uint32_t *dst32 = (uint32_t *) dst;
+
+	length /= 4;
+	size_t tx_remain = length;
+	size_t rx_remain = length;
+
+	io_rw_32 *txfifo = (io_rw_32 *) &pio->txf[sm];
+	io_rw_32 *rxfifo = (io_rw_32 *) &pio->rxf[sm];
+
+	while (tx_remain || rx_remain)
+	{
+		if (tx_remain && !pio_sm_is_tx_fifo_full (pio, sm))
+		{
+			*txfifo = __builtin_bswap32 (*src32++);
+			--tx_remain;
+		}
+
+		if (rx_remain && !pio_sm_is_rx_fifo_empty (pio, sm))
+		{
+			*dst32++ = __builtin_bswap32 (*rxfifo);
+			--rx_remain;
+		}
+	}
+}
+
+%}
