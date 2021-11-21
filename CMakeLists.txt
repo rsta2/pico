@@ -24,4 +24,5 @@ add_compile_options(-Wall
 	-Wno-maybe-uninitialized
 	)
 
+add_subdirectory(dummy_rom)
 add_subdirectory(spi_slave_pio)
