@@ -13,7 +13,7 @@ Programs
 
 | Directory        | Description                                              |
 |------------------|----------------------------------------------------------|
-| dummy_rom/       | to be installed in the flash ROM for the RAM loader      |
+| dummy_flash/     | to be installed in the flash for the RAM loader          |
 | spi_slave_pio/   | SPI slave, which is compatible with the Raspberry Pi 0-4 |
 
 Building

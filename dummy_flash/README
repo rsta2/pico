@@ -1,0 +1,4 @@
+README
+
+This trivial program should be installed in the flash of the Raspberry Pi
+Pico, if it is planned to be used for programs running from RAM.
