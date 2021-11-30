@@ -25,4 +25,5 @@ add_compile_options(-Wall
 	)
 
 add_subdirectory(dummy_flash)
+add_subdirectory(midi_adapter)
 add_subdirectory(spi_slave_pio)
