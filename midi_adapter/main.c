@@ -39,6 +39,8 @@
 // MACRO CONSTANT TYPEDEF PROTYPES
 //--------------------------------------------------------------------+
 
+//#define IGNORE_MIDI_CC
+
 static bool led_usb_state = false;
 static bool led_uart_state = false;
 
@@ -137,10 +139,16 @@ void midi_task(void)
     static const size_t cin_to_length[] =
       {0, 0, 2, 3, 3, 1, 2, 3, 3, 3, 3, 3, 2, 2, 3, 1};
 
-    size_t length = cin_to_length[packet[0] & 0xF];
-    if (length)
+    uint8_t cid = packet[0] & 0xF;
+#ifdef IGNORE_MIDI_CC
+    if (cid != 0x0B && cid != 0x0C)
+#endif
     {
-      uart_write_blocking(uart0, packet+1, length);
+      size_t length = cin_to_length[cid];
+      if (length)
+      {
+        uart_write_blocking(uart0, packet+1, length);
+      }
     }
 
     led_usb_state = true;
