@@ -14,7 +14,7 @@ add_executable(${PROJECT})
 
 # Example source
 target_sources(${PROJECT} PRIVATE
-        main.c
+        main.cpp
         usb_descriptors.c
         )
 
