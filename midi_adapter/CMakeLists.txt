@@ -15,6 +15,10 @@ add_executable(${PROJECT})
 # Example source
 target_sources(${PROJECT} PRIVATE
         main.cpp
+        midi_message.cpp
+        midi_port.cpp
+        midi_port_usb.cpp
+        midi_port_uart.cpp
         usb_descriptors.c
         )
 
