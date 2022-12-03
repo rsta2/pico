@@ -1,0 +1,56 @@
+README
+
+This program is a configurable USB to 2x serial MIDI adapter. It connects to an
+USB host via the USB connector of the Raspberry Pi Pico on one side and to up to
+two MIDI devices with serial interface via GP0 (UART0 TX)/GP1 (RX) and/or GP4
+(UART1 TX)/GP5 (RX) on the other side. MIDI messages/events, received on one of
+the interfaces (USB, UART0, UART1), will be converted and send out on all other
+interfaces by default. The LED on the Raspberry Pi Pico board flashes, when MIDI
+data is exchanged.
+
+The program is configurable and can support more complex MIDI functions (e.g.
+note transpose, channel or velocity changes, note to chords). You need some
+basic C/C++ knowledge and have to edit the function midi_task() in the file
+main.cpp for that purpose. For example the following code transposes all MIDI
+note events, which were received from USB by one octave up and sends them out to
+both serial interfaces (UART0 and UART1):
+
+void midi_task (void)
+{
+	USB.Update ();
+	UART0.Update ();
+	UART1.Update ();
+
+	CMIDIMessage Msg;
+
+	if (USB.Read (&Msg))
+	{
+		if (Msg.Type () == 0x90 || Msg.Type () == 0x80)
+		{
+			Msg.Param1 (Msg.Param1 () + 12);
+		}
+
+		UART0.Write (Msg);
+		UART1.Write (Msg);
+	}
+
+	if (UART0.Read (&Msg))
+	{
+		// no action here
+	}
+
+	if (UART1.Read (&Msg))
+	{
+		// no action here
+	}
+}
+
+Please see the file midi_message.h for the implemented methods to get and set
+the different data fields of a MIDI message.
+
+The MIDI adapter receives USB MIDI events from all virtual MIDI cables, and it
+sends USB MIDI data to the virtual MIDI cable zero. MIDI system exclusive
+messages will be ignored.
+
+The Raspberry Pi Pico is powered via USB, the VSYS or VBUS pins must NOT be
+connected!
