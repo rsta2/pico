@@ -75,7 +75,7 @@ void tud_umount_cb (void)
 	CMIDIPortUSB::Unmount ();
 }
 
-void tud_suspend_cb (bool bRemoteWakeup)
+void tud_suspend_cb (bool /* bRemoteWakeup */)
 {
 }
 

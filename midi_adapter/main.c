@@ -160,8 +160,8 @@ void midi_task(void)
 
   // Handle UART to USB direction
   static uint8_t buffer[CFG_TUD_MIDI_TX_BUFSIZE/4*3];
-  static uint8_t buf_pos = 0;
-  static uint8_t buf_valid = 0;
+  static uint32_t buf_pos = 0;
+  static uint32_t buf_valid = 0;
 
   size_t length = buf_valid - buf_pos;
   if (length)
