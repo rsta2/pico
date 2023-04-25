@@ -1,7 +1,7 @@
 //
 // midi_port_usb.cpp
 //
-// Copyright (C) 2022  Rene Stange
+// Copyright (C) 2022-2023  Rene Stange
 //
 // SPDX-License-Identifier: MIT
 //
@@ -43,7 +43,8 @@ void CMIDIPortUSB::Update (void)
 		if (   uchLength
 		    && Packet[1] != 0xF7)
 		{
-			Packet[0] = uchLength;
+			Packet[0] &= 0xF0;
+			Packet[0] |= uchLength;
 			queue_try_add (&m_RxQueue, Packet);
 		}
 
@@ -57,7 +58,7 @@ void CMIDIPortUSB::Update (void)
 	uint8_t Buffer[CMIDIMessage::MaxLength];
 	if (queue_try_remove (&m_TxQueue, Buffer))
 	{
-		tud_midi_stream_write (0, Buffer+1, Buffer[0]);
+		tud_midi_stream_write (Buffer[0] >> 4, Buffer+1, Buffer[0] & 0xF);
 	}
 }
 
