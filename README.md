@@ -1,7 +1,7 @@
 Pico
 ====
 
-> Raspberry Pi is a trademark of the Raspberry Pi Foundation.
+> Raspberry Pi is a trademark of Raspberry Pi Ltd.
 
 Overview
 --------
