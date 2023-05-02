@@ -1,7 +1,7 @@
 //
 // midi_port_uart.cpp
 //
-// Copyright (C) 2022  Rene Stange
+// Copyright (C) 2022-2023  Rene Stange
 //
 // SPDX-License-Identifier: MIT
 //
@@ -80,7 +80,7 @@ void CMIDIPortUART::Update (void)
 
 		uart_putc_raw (m_pUART, m_TxBuffer[++m_nTxState]);
 
-		if (m_nTxState == m_TxBuffer[0])
+		if (m_nTxState == (m_TxBuffer[0] & 0xF))
 		{
 			m_nTxState = 0;
 		}

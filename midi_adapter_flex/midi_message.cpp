@@ -1,7 +1,7 @@
 //
 // midi_message.cpp
 //
-// Copyright (C) 2022  Rene Stange
+// Copyright (C) 2022-2023  Rene Stange
 //
 // SPDX-License-Identifier: MIT
 //
@@ -12,9 +12,10 @@ CMIDIMessage::CMIDIMessage (void)
 }
 
 CMIDIMessage::CMIDIMessage (uint8_t uchLength, uint8_t uchStatus,
-			    uint8_t uchParam1, uint8_t uchParam2)
+			    uint8_t uchParam1, uint8_t uchParam2,
+			    uint8_t uchCable)
 {
-	m_Buffer[0] = uchLength;
+	m_Buffer[0] = uchLength | uchCable << 4;
 	m_Buffer[1] = uchStatus;
 	m_Buffer[2] = uchParam1;
 	m_Buffer[3] = uchParam2;
@@ -50,6 +51,11 @@ uint8_t CMIDIMessage::Param2 (void) const
 	return m_Buffer[3];
 }
 
+uint8_t CMIDIMessage::Cable (void) const
+{
+	return m_Buffer[0] >> 4;
+}
+
 void CMIDIMessage::Channel (uint8_t uchChannel)
 {
 	m_Buffer[1] &= 0xF0;
@@ -64,6 +70,12 @@ void CMIDIMessage::Param1 (uint8_t uchParam1)
 void CMIDIMessage::Param2 (uint8_t uchParam2)
 {
 	m_Buffer[3] = uchParam2;
+}
+
+void CMIDIMessage::Cable (uint8_t uchCable)
+{
+	m_Buffer[0] &= 0x0F;
+	m_Buffer[0] |= uchCable << 4;
 }
 
 const uint8_t *CMIDIMessage::GetBuffer (void) const
