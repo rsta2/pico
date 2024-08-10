@@ -8,6 +8,9 @@ Overview
 
 Some small programs for the Raspberry Pi Pico.
 
+Pico W and Pico 2 have not been tested with these programs. The LED is not
+working on the Pico W with them.
+
 Programs
 --------
 
@@ -23,6 +26,8 @@ Building
 
 ```
 export PICO_SDK_PATH=/absolute/path/to/pico-sdk
+export PICOTOOL_FETCH_FROM_GIT_PATH=/absolute/path/to/a/temp/directory
+export PICO_BOARD=pico		# or pico_w, pico2
 mkdir build
 cd build
 cmake ..
