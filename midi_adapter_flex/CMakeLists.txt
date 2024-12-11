@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 include(${PICO_SDK_PATH}/lib/tinyusb/hw/bsp/family_support.cmake)
 
